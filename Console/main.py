@@ -6,8 +6,12 @@
 
 import cv2
 import os
+import pygame
 
 cam = cv2.VideoCapture(0)
+
+clock = pygame.time.Clock()
+FPS = 144
 
 cv2.namedWindow("test")
 
@@ -116,6 +120,7 @@ def img_to_ascii(img):
         
 os.system('clear')
 while True:
+    clock.tick(FPS)
     ret, frame = cam.read()
     if not ret:
         print("failed to grab frame")
