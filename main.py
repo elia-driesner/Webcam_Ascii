@@ -1,24 +1,28 @@
-# 1. Install open cv using: pip install opencv-python
-# 2. Open a full screen terminal window and cd to this folder
-# 3. Change the line margin to 0.5
-# 4. Run using python3 main.py and enjoy
-
-
+from curses import A_ALTCHARSET
 import cv2
 import os
 import pygame
 
+pygame.init()
+
 cam = cv2.VideoCapture(0)
+
+cv2.namedWindow("Display", cv2.WINDOW_AUTOSIZE)
 
 clock = pygame.time.Clock()
 FPS = 144
 
-cv2.namedWindow("test")
+textSurfSize = (5000, 5000)
+textSurf = pygame.Surface(textSurfSize)
+
+wn = pygame.display.set_mode((1500, 1000), pygame.RESIZABLE)
+
+font = pygame.font.Font('freesansbold.ttf', 35) 
 
 def img_to_ascii(img):
     char = "$@B%&M#*akdqmOQCUXcuxjt\(1}]-+~>i!lI;:,^`'."[::-1]
     ascii_image = []
-    img = cv2.resize(img, (int(img.shape[1] / 11), int(img.shape[0] / 11)))
+    img = cv2.resize(img, (int(img.shape[1] / 5), int(img.shape[0] / 5)))
     size = img.shape
     for i in range(0, size[0]):
         ascii_image.append([])
@@ -111,29 +115,37 @@ def img_to_ascii(img):
                 ascii_image[i].append(char[41])
             elif brightness < 10 or brightness > 10:
                 ascii_image[i].append(char[42])
-    os.system('clear')
+        
+    
+    x, y = 0, 0
+    
     for row in ascii_image:
-        for column in row:
-            for char in column:
-                print(f"{char} ", end = '')
-        print('\n')
+        for char in row:  
+            text = font.render(char, True, pygame.Color('black'))
+            textSurf.blit(text, ((textSurfSize[0] / len(row)) * x, (textSurfSize[1] / len(ascii_image)) * y))
+            x += 1
+        y += 1
+        x = 0
         
 os.system('clear')
 while True:
-    clock.tick(FPS)
+    clock.tick(50)
+    wn.fill((0, 0, 0))
+    textSurf.fill((255, 255, 255))
     ret, frame = cam.read()
     if not ret:
         print("failed to grab frame")
         break
-    cv2.imshow("test", frame)
     img_to_ascii(frame)
 
     k = cv2.waitKey(1)
     if k%256 == 27:
-        # ESC pressed
         print("Escape hit, closing...")
         break
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            break
+    wn.blit(pygame.transform.scale(textSurf, (1500, 1000)), (0, 0))
+    pygame.display.update()
 
 cam.release()
-
-cv2.destroyAllWindows()
